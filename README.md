@@ -39,7 +39,7 @@ Specs ──▸ Skills ──▸ Governance ──▸ MCP Servers ──▸ MCP 
 ## Prerequisites
 
 - [VS Code 1.116+](https://code.visualstudio.com/) (`Code > About` to check version)
-- [GitHub Copilot](https://jfit.jfrog.com/support/catalog/items) extension — **latest version** (install the Enterprise license via Okta — do not use the free/public version)
+- [GitHub Copilot](https://github.com/features/copilot/) extension — **latest version**, with **Copilot Chat** signed in (a Business/Enterprise seat from your organization is recommended; org-managed accounts also need an admin to enable **Settings → Copilot → Policies → Editor preview features** for the chat plugin in Exercise 05)
 - [Python 3.11+](https://www.python.org/downloads/)
 - [Node.js](https://nodejs.org/) (for running npm/npx packages in Exercises 04-05)
 - [JFrog CLI](https://docs.jfrog.com/jfrog-applications/jfrog-cli/) v2.102.0 or newer (`jf --version` to verify) with the Skills module (`jf skills --help` to verify)
@@ -103,4 +103,4 @@ Ask the agent to install filesystem and GitHub MCP servers, then inspect what it
 
 ### [05 — MCP Governance](exercises/05%20-%20mcp-governance/README.md) · 20-25 min
 
-Replace the raw MCP servers from Exercise 04 with governed ones from the JFrog MCP Registry. Install the Gateway from the JFrog Platform, use the agent to discover and install MCP servers through it, and compare the experience — vetted versions, no local credentials, tool-level policies, and central visibility.
+Replace the raw MCP servers from Exercise 04 with governed ones from the JFrog MCP Registry. Install the [JFrog Plugin for VS Code](https://github.com/jfrog/vscode-plugin) and let its **Agent Guard** feature discover and install MCP servers through the registry, then compare the experience — vetted versions, no plaintext credentials, tool-level policies, and central visibility.

@@ -226,11 +226,11 @@ You asked the agent to configure two external integrations. It did — quickly a
 
 Notice something else: the agent picked whichever npm packages it knew about. A different agent (or the same agent on a different day) might choose entirely different packages for the same purpose. There's no guarantee it picked the official or most secure option — just whatever was in its training data.
 
-This is what an **MCP Registry and Gateway** solves:
+This is what the **JFrog MCP Registry** — consumed through the JFrog Plugin's **Agent Guard** feature — solves:
 
 - **Central registry** of approved MCP servers — developers connect only to vetted servers, not random npm packages
 - **Tool-level permissions** — an admin can allow the GitHub MCP but disable `delete_branch` and `create_repository` for specific projects or teams
-- **Gateway proxy** — a local proxy sits between VS Code and the MCP servers, handling authentication, enforcing RBAC, and logging every tool call
+- **Agent Guard proxy** — a local proxy (`npx @jfrog/agent-guard`) sits between VS Code and the MCP servers, handling authentication, enforcing tool policies, and logging every call
 - **Automated policy gates** — every MCP server is scanned against security policies before it can be used
 
 <details>
@@ -283,6 +283,6 @@ This is what an **MCP Registry and Gateway** solves:
 
 ## Next Up
 
-You've seen how MCP servers give the agent access to external systems — and how that access is currently ungoverned. In the next exercise, the JFrog MCP Registry brings all of this under control.
+You've seen how MCP servers give the agent access to external systems — and how that access is currently ungoverned. In the next exercise, the JFrog MCP Registry — via the JFrog Plugin for VS Code and its **Agent Guard** feature — brings all of this under control.
 
 [Continue to Exercise 05 — MCP Governance →](../05%20-%20mcp-governance/README.md)

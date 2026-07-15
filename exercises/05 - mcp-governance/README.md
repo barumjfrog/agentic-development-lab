@@ -4,7 +4,7 @@
 
 In Exercise 04 you installed MCP servers the way most developers do today — the agent picked an npm package, used `@latest`, stored credentials in a local JSON file, and exposed every tool the server offers. It worked, but it was ungoverned.
 
-In this exercise you'll replace that setup with the **JFrog MCP Registry**. You'll install the same two MCP servers — filesystem and GitHub — but this time through a governed Gateway that controls versions, credentials, and tool access. By the end you'll have a concrete side-by-side comparison.
+In this exercise you'll replace that setup with the **JFrog MCP Registry**. You'll install the same two MCP servers — filesystem and GitHub — but this time through the **JFrog Plugin for VS Code** and its **Agent Guard** feature, which governs versions, credentials, and tool access. By the end you'll have a concrete side-by-side comparison.
 
 **Estimated time:** 20-25 minutes
 
@@ -12,10 +12,10 @@ In this exercise you'll replace that setup with the **JFrog MCP Registry**. You'
 
 1. [Clean up Exercise 04](#step-1--clean-up-exercise-04)
 
-**Install the Gateway (Steps 2-4)**
+**Install the JFrog Plugin (Steps 2-4)**
 
 2. [Open the MCP Registry](#2-open-the-mcp-registry)
-3. [Install the JFrog VS Code plugin](#3-install-the-jfrog-vs-code-plugin)
+3. [Install the JFrog Plugin for VS Code](#3-install-the-jfrog-plugin-for-vs-code)
 4. [Understand what the plugin does](#4-understand-what-the-plugin-does)
 
 **Goal A — Filesystem MCP (Steps 5-8)**
@@ -34,6 +34,7 @@ In this exercise you'll replace that setup with the **JFrog MCP Registry**. You'
 ## Prerequisites
 
 - [Main prerequisites](../../README.md#prerequisites) completed
+- Your JFrog subscription includes the **AI Catalog** entitlement — Agent Guard checks this at session start and stays dormant without it
 
 
 ---
@@ -63,7 +64,7 @@ Verify:
 ---
 
 
-## Steps 2-4 — Install and Verify the Gateway
+## Steps 2-4 — Install and Verify the JFrog Plugin
 
 &nbsp;
 
@@ -75,41 +76,62 @@ In the JFrog Platform, first select the **Agentic Development Lab** project from
 
 &nbsp;
 
-### 3. Install the JFrog VS Code plugin
+### 3. Install the JFrog Plugin for VS Code
 
-Click **Install MCP** on any available MCP server, then select **VS Code** as your IDE. Click the installation link shown in the UI, or open this link directly:
+The [JFrog Plugin for VS Code](https://github.com/jfrog/vscode-plugin) is the official JFrog plugin for VS Code and **GitHub Copilot Chat**. It connects your Copilot agent to the JFrog Platform with policy-governed MCP access, auto-installed governance instructions, and **Agent Guard** — the feature you'll use to discover, install, configure, update, and remove MCP servers approved for your project in the JFrog AI Catalog.
+
+You have three install options — pick whichever fits your workflow:
+
+**Option 1 — Magic link (recommended).** Click **Install MCP** on any available MCP server in the Registry, select **VS Code** as your IDE, and click **Install via magic link**. Or paste this into your browser:
 
 ```
 vscode://chat-plugin/install?source=jfrog/vscode-plugin
 ```
 
-This installs a **Copilot chat plugin** — not a traditional VS Code extension. It has no UI, no sidebar panel, and no settings page. Instead, it works by injecting governance instructions into your workspace every time a Copilot session starts.
+**Option 2 — Command Palette.** Run **Chat: Install Plugin from Source** (`Cmd+Shift+P` / `Ctrl+Shift+P`) and enter `https://github.com/jfrog/vscode-plugin/`.
+
+**Option 3 — Marketplace setting.** Add this entry to your user `settings.json` (**Preferences: Open User Settings (JSON)**):
+
+```json
+"chat.plugins.marketplaces": [
+  "https://github.com/jfrog/vscode-plugin/"
+]
+```
+
+Then open the Extensions panel (`Cmd+Shift+X`), search for `@agentPlugins jfrog/vscode-plugin`, and click **Install**.
+
+Whichever option you choose, VS Code prompts you to **Trust** the source — accept it.
+
+This installs a **Copilot chat plugin** — not a traditional VS Code extension. It has no UI, no sidebar panel, and no settings page. (Don't confuse it with `JFrog.jfrog-vscode-extension` on the VS Code Marketplace — that's JFrog's separate dependency-scanning extension and has nothing to do with Agent Guard.)
 
 <img src="../../resources/jfrog-agent-plugin.png" alt="JFrog agent plugin installation" width="800" />
 
 After installing, **restart VS Code entirely** (not just the chat panel — the plugin's session hooks need a full restart to activate).
 
-> **Note:** The plugin uses your existing JFrog CLI authentication. If you haven't configured it yet, run `jf config add` in your terminal and follow the prompts. Alternatively, set the environment variables `JFROG_PLATFORM_URL`, `JF_PROJECT`, and `JFROG_ACCESS_TOKEN` in your shell profile. Restart VS Code after configuring.
+> **Note:** The plugin resolves credentials from the environment variables `JFROG_URL` (your platform URL, e.g. `https://<WORKSHOPINSTANCE>.jfrog.io` — no trailing `/`) and `JFROG_ACCESS_TOKEN`, falling back to your JFrog CLI configuration. If you have neither, run `jf config add` in your terminal and follow the prompts. Optionally set `JF_PROJECT` to your project key so the agent doesn't have to ask for it. Restart VS Code after configuring.
+
+> **Org-managed Copilot?** If your Copilot access is managed by a GitHub organization, an admin must set **Settings → Copilot → Policies → Editor preview features** to **Enabled**, or VS Code won't load chat plugins. Individual Copilot accounts can skip this.
 
 &nbsp;
 
 ### 4. Understand what the plugin does
 
-The JFrog plugin is a **prompt-engineering layer**. On every Copilot session start, a hook script injects governance instructions and a scripts folder into your workspace: `.github/copilot-instructions.md` (Gateway workflow instructions) and `.github/scripts/` (helper scripts used by the workflow).
+The plugin ships two components:
 
-You can see the source of these injected instructions in the [plugin's template](https://github.com/jfrog/vscode-plugin/blob/main/plugin/templates/copilot-instructions.md).
+1. **A remote JFrog MCP server** — auto-attached to every session via the plugin's `.mcp.json`, pointing at `${JFROG_URL}/mcp` (OAuth — no API keys in config). This gives the agent JFrog Platform tools out of the box.
+2. **Agent Guard** — a session-start hook. Each time a Copilot session starts, the hook verifies Agent Guard is enabled for your platform and injects the [MCP-management instructions](https://github.com/jfrog/vscode-plugin/blob/main/plugin/templates/jfrog-mcp-management.md) directly into the session context. Nothing is written into your workspace — the governance travels with the session.
 
-Copilot reads `.github/copilot-instructions.md` automatically and follows the rules inside. When you ask the agent to install an MCP, it:
+The injected instructions ensure that when you ask the agent to install an MCP, it:
 
-1. Runs the bundled lookup script to query the JFrog MCP Registry for approved servers
-2. Adds an entry to `.vscode/mcp.json` that launches the MCP through `npx @jfrog/mcp-gateway`
-3. The Gateway — a local proxy (`@jfrog/mcp-gateway` npm package) — wraps the real MCP server, enforcing tool policies on every call
+1. Queries the JFrog MCP Registry for the servers approved for your project (`npx @jfrog/agent-guard --list-available`)
+2. Inspects the approved server's live catalog metadata — exact package name, version, required configuration, and tool policies
+3. Writes an MCP config entry that launches the server through `npx @jfrog/agent-guard` — a local proxy that wraps the real MCP server and enforces tool policies on every call
 
-Each MCP from the MCP list gets its own attached JFrog Gateway process. That process proxies communication between VS Code and the MCP server while enforcing governance controls for tool access and runtime behavior.
+Each governed MCP gets its own Agent Guard process and its own entry in your MCP config, listed individually in **MCP: List Servers** (e.g., `filesystem-mcp`) — not as a single "gateway" entry.
 
-Each MCP gets its own entry in `mcp.json` and appears individually in VS Code's MCP server list. Run **MCP: List Servers** from the Command Palette (`Cmd+Shift+P` / `Ctrl+Shift+P`) — you should see each governed MCP listed by name (e.g., `filesystem-mcp`), not a single "Gateway" entry.
+> **Where does the config go?** By default Agent Guard writes to your **user-level** MCP config (open it with **MCP: Open User Configuration**), so servers are available across workspaces and never committed to git. Phrase the request as "for this project" when you want the entry in the workspace `.vscode/mcp.json` instead — which is what this lab does.
 
-Think about what this means: in Exercise 04, the agent wrote its own MCP configuration pointing directly to npm packages. Here, the injected instructions ensure the agent always routes through the Gateway. The governance comes from the instructions themselves — and from the Gateway enforcing tool policies at runtime.
+Think about what this means: in Exercise 04, the agent wrote its own MCP configuration pointing directly at npm packages. Here, the injected instructions ensure the agent always routes through Agent Guard — and Agent Guard enforces tool policies at runtime.
 
 Before continuing, ask the agent:
 
@@ -117,9 +139,9 @@ Before continuing, ask the agent:
 Which MCP servers are available for installation from the JFrog plugin?
 ```
 
-The agent will read your JFrog CLI configuration (`~/.jfrog/jfrog-cli.conf.v6`), present a picker with the available server IDs, and ask for your JFrog project name. When it asks, provide the **project key** (not the display name): `agentic-development-lab`.
+The agent resolves your JFrog server — from `JFROG_URL` + `JFROG_ACCESS_TOKEN`, or from your JFrog CLI configuration via `jf config show` — and asks for your JFrog project. When it asks, provide the **project key** (not the display name): `agentic-development-lab`.
 
-> **Important:** The agent's prompt says "project name" but the catalog API requires the **project key**. The project key is the hyphenated identifier (e.g., `agentic-development-lab`), not the human-readable name shown in the UI (e.g., "Agentic Development Lab"). Using the display name will fail.
+> **Important:** The agent's prompt says "project name" but the catalog API requires the **project key**. The project key is the hyphenated identifier (e.g., `agentic-development-lab`), not the human-readable name shown in the UI (e.g., "Agentic Development Lab"). Using the display name will fail. Setting the `JF_PROJECT` environment variable skips this question entirely.
 
 Once you provide both, it runs the catalog lookup and lists the approved MCP servers — for this lab: `filesystem-mcp` and `io.github.github/github-mcp-server`.
 
@@ -129,7 +151,7 @@ Once you provide both, it runs the catalog lookup and lists the approved MCP ser
 
 ## Goal A — Filesystem MCP (local, governed)
 
-In Exercise 04 you installed the Filesystem MCP directly from npm. Now you'll install it through the Gateway and see what's different: which version gets installed, which tools are exposed, and why.
+In Exercise 04 you installed the Filesystem MCP directly from npm. Now you'll install it through Agent Guard and see what's different: which version gets installed, which tools are exposed, and why.
 
 &nbsp;
 
@@ -141,9 +163,9 @@ Prompt the agent:
 Install the filesystem MCP server for this project.
 ```
 
-The agent installs the approved filesystem MCP through the Gateway. If you're in a new chat session, it will ask for the JFrog server and project again — that's expected. Compare this to Exercise 04, where the agent chose whatever npm package it wanted.
+The agent installs the approved filesystem MCP through Agent Guard. If you're in a new chat session, it will ask for the JFrog server and project again — that's expected. Compare this to Exercise 04, where the agent chose whatever npm package it wanted.
 
-Verify the install: run **MCP: List Servers** from the Command Palette (`Cmd+Shift+P` / `Ctrl+Shift+P`) or open `.vscode/mcp.json` — you should see a `filesystem-mcp` entry that launches through `npx @jfrog/mcp-gateway`.
+Verify the install: run **MCP: List Servers** from the Command Palette (`Cmd+Shift+P` / `Ctrl+Shift+P`) or open `.vscode/mcp.json` — you should see a `filesystem-mcp` entry that launches through `npx @jfrog/agent-guard`.
 
 &nbsp;
 
@@ -155,7 +177,7 @@ Prompt the agent:
 List all the tools available from the filesystem MCP server.
 ```
 
-You should see the governed tool list — potentially a subset of what was available in Exercise 04. The Gateway applies **tool policies** set by your project admin, so tools like `write_file` or `create_directory` may be restricted depending on the policy.
+You should see the governed tool list — potentially a subset of what was available in Exercise 04. Agent Guard applies **tool policies** set by your project admin, so tools like `write_file` or `create_directory` may be restricted depending on the policy.
 
 <img src="../../resources/mcp-tool-permissions.png" alt="MCP tool permissions in JFrog Platform" width="800" />
 
@@ -177,7 +199,7 @@ It works the same as Exercise 04 — but the setup behind it is completely diffe
 
 ### 8. Notice the version
 
-The MCP server installed through the Gateway is **not** `@latest`. It's a specific version that was resolved through Artifactory and passed your organization's curation policies.
+The MCP server installed through Agent Guard is **not** `@latest`. It's a specific version that was resolved through Artifactory and passed your organization's curation policies.
 
 One such policy is the **zero-day filter** — npm packages less than 30 days old are automatically blocked. This prevents the exact supply chain attack you saw in Exercise 04, where `@latest` could pull a freshly published (and potentially compromised) package.
 
@@ -191,7 +213,7 @@ In Exercise 04, every VS Code restart pulled whatever version was currently on n
 
 ## Goal B — GitHub MCP (remote, governed)
 
-In Exercise 04 you pasted a GitHub token directly into the agent's chat, and it stored it in plaintext in `mcp.json`. Now you'll install the same GitHub MCP through the Gateway — the agent will ask for the token as a required configuration value, and it gets stored as an environment variable in `mcp.json` under the Gateway entry.
+In Exercise 04 you pasted a GitHub token directly into the agent's chat, and it stored it in plaintext in `mcp.json`. Now you'll install the same GitHub MCP through Agent Guard — the token is declared as a **secret** in the catalog metadata, so the config only ever holds a `${input:...}` placeholder. VS Code prompts you for the value in a masked field, and the raw token never appears in the config file or the chat transcript.
 
 &nbsp;
 
@@ -203,9 +225,9 @@ Prompt the agent:
 Install the GitHub MCP server.
 ```
 
-The agent queries the catalog, finds `io.github.github/github-mcp-server`, and sees it requires an `Authorization` header. It will ask you to provide a GitHub token — enter it in the format `token ghp_...` (with the `token ` prefix).
+The agent queries the catalog, finds `io.github.github/github-mcp-server`, and sees it requires an `Authorization` header. Because that value is marked **secret** in the catalog metadata, the agent doesn't take it in chat — it wires the header to a `${input:...}` placeholder in the MCP config, and VS Code prompts you for the value (masked) when the server starts. Enter it in the format `token ghp_...` (with the `token ` prefix).
 
-The agent writes the entry to `.vscode/mcp.json` with the `Authorization` value stored as an environment variable that the Gateway reads at startup and applies as an HTTP header to the upstream MCP server.
+Compare to Exercise 04, where the raw token you pasted into chat landed in plaintext in `.vscode/mcp.json`.
 
 &nbsp;
 
@@ -233,7 +255,7 @@ List the 3 most recent open issues on jfrog/jfrog-cli.
 
 ### 11. Notice the tool restrictions
 
-In Exercise 04, the raw GitHub MCP exposed every tool — including `create_issue`, `add_issue_comment`, `delete_branch`, `fork_repository`, and more. Through the Gateway, the tool policy restricts the available tools to a governed subset.
+In Exercise 04, the raw GitHub MCP exposed every tool — including `create_issue`, `add_issue_comment`, `delete_branch`, `fork_repository`, and more. Through Agent Guard, the tool policy restricts the available tools to a governed subset.
 
 Prompt the agent:
 
@@ -251,12 +273,12 @@ Compare the list to what you had in Exercise 04. Tools like `create_issue`, `add
 
 ### Before vs After
 
-| | Exercise 04 (raw MCP) | Exercise 05 (Registry) |
+| | Exercise 04 (raw MCP) | Exercise 05 (Agent Guard) |
 |---|---|---|
 | **Package source** | `npx @latest` from npm — unvetted | Scanned and version-pinned from Artifactory |
 | **Curation** | None — any version, any time | Zero-day filter blocks packages less than 30 days old |
-| **Credentials** | Plaintext token in `.vscode/mcp.json` | Managed through Gateway env vars — agent prompts for values at install time |
-| **Configuration** | Agent picks args, scope, env vars | Gateway configures automatically from platform settings |
+| **Credentials** | Plaintext token in `.vscode/mcp.json` | Masked `${input:...}` prompt — never in chat, never raw in config |
+| **Configuration** | Agent picks args, scope, env vars | Agent Guard configures from the catalog's approved metadata |
 | **Tool control** | All tools exposed — `delete_branch`, `create_repository`, everything | Filtered to allowed tools per project policy |
 | **Visibility** | Invisible JSON file on one developer's laptop | Centrally managed in JFrog Platform — admin sees all |
 
@@ -272,10 +294,12 @@ Compare the list to what you had in Exercise 04. Tools like `create_issue`, `add
 
 - **Curation policies apply to MCP servers too.** The same zero-day filter that protects your npm dependencies also governs which MCP server versions can be installed. No more pulling unvetted `@latest` on every restart.
 
-- **Credentials are managed through the Gateway.** Required credentials are declared in the MCP catalog metadata. The agent prompts for them at install time and stores them as environment variables in the Gateway entry — not as raw config the agent invented on its own.
+- **Agent Guard is the client-side enforcement point.** The JFrog Plugin injects governance instructions at session start and routes every install through the `@jfrog/agent-guard` proxy — the IDE-side surface of the JFrog AI Catalog's MCP Registry.
 
-- **Tool-level policies give admins control.** The Gateway filters which tools each MCP server exposes, based on project policies. The agent only sees what it's allowed to use.
+- **Credentials are handled as secret inputs.** Required credentials are declared in the MCP catalog metadata. VS Code prompts for them with a masked input and the config stores only a `${input:...}` reference — the raw value never lands in a file or the chat transcript.
 
-- **The agent experience doesn't change.** The agent still calls tools by name. The difference is that the Gateway controls which tools exist, which versions run, and what credentials are used.
+- **Tool-level policies give admins control.** Agent Guard filters which tools each MCP server exposes, based on project policies. The agent only sees what it's allowed to use.
+
+- **The agent experience doesn't change.** The agent still calls tools by name. The difference is that Agent Guard controls which tools exist, which versions run, and what credentials are used.
 
 - **This completes the governance stack.** Skills are governed through the Skills Registry (Exercises 02-03). MCP servers are governed through the MCP Registry (Exercises 04-05). The agent operates freely within the boundaries your organization defines.
