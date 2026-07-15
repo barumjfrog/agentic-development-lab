@@ -67,11 +67,12 @@ Also check which **model** is selected in the model picker (top of the chat pane
 
 | Model | Strengths | Best for |
 |---|---|---|
-| **Claude (Sonnet/Opus)** | Most disciplined at following multi-step instructions and long specs. Thorough, careful output. | Agentic tasks like "read these specs and build everything" |
+| **Google Gemini** | Strong long-context reasoning and planning; consistent multi-step instruction following. | **This workshop** — agentic tasks like "read these specs and build everything" |
+| **Claude (Sonnet/Opus)** | Disciplined at following multi-step instructions and long specs. Thorough, careful output. | Agentic builds when Gemini isn't available |
 | **GPT-4o** | Fast generalist. Good at conversational tasks and quick edits. | Short questions, smaller code changes |
 | **Auto** | VS Code picks the model per request based on task complexity. | Everyday use when consistency isn't critical |
 
-> **For this workshop:** pin to **Claude Sonnet** so everyone gets consistent behavior from the same prompts. Auto mode may route different attendees to different models, making it harder to follow along.
+> **For this workshop:** pin to **Google Gemini** so everyone gets consistent behavior from the same prompts. Auto mode may route different attendees to different models, making it harder to follow along.
 
 **Prompt:**
 
