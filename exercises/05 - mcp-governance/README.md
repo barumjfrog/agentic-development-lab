@@ -108,7 +108,7 @@ This installs a **Copilot chat plugin** — not a traditional VS Code extension.
 
 After installing, **restart VS Code entirely** (not just the chat panel — the plugin's session hooks need a full restart to activate).
 
-> **Note:** The plugin resolves credentials from the environment variables `JFROG_URL` (your platform URL, e.g. `https://<WORKSHOPINSTANCE>.jfrog.io` — no trailing `/`) and `JFROG_ACCESS_TOKEN`, falling back to your JFrog CLI configuration. If you have neither, run `jf config add` in your terminal and follow the prompts. Optionally set `JF_PROJECT` to your project key so the agent doesn't have to ask for it. Restart VS Code after configuring.
+> **Note:** The plugin resolves credentials from the environment variables `JFROG_URL` (your platform URL — for this workshop `https://jfroggcpworkshopnyc.jfrog.io`, no trailing `/`) and `JFROG_ACCESS_TOKEN`, falling back to your JFrog CLI configuration. If you have neither, run `jf config add` in your terminal and follow the prompts. Optionally set `JF_PROJECT` to your project key so the agent doesn't have to ask for it. Restart VS Code after configuring.
 
 > **Org-managed Copilot?** If your Copilot access is managed by a GitHub organization, an admin must set **Settings → Copilot → Policies → Editor preview features** to **Enabled**, or VS Code won't load chat plugins. Individual Copilot accounts can skip this.
 
