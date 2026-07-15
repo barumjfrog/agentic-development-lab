@@ -47,7 +47,7 @@ Specs ──▸ Skills ──▸ Governance ──▸ MCP Servers ──▸ MCP 
 
 ### Clone and Open the Lab
 
-Clone the repo **from your terminal** using your regular git credentials (SSH key or personal access token):
+Clone the repo **from your terminal** — it's public, so the HTTPS clone needs no credentials:
 
 ```bash
 git clone https://github.com/barumjfrog/agentic-development-lab.git
@@ -63,7 +63,7 @@ Then sign into Copilot with your **enterprise** account:
    - A **model selector** at the top of the chat panel
    - A **mode selector** (Ask / Edit / Agent) at the bottom
 
-> **Why two separate steps?** Your git credentials (for cloning) and your Copilot license (for AI features) are independent. Cloning from the terminal avoids VS Code asking which GitHub account to use for git operations — it simply uses whatever authentication your system git already has configured.
+> **Why clone from the terminal?** The clone needs no GitHub account at all, and your Copilot license (for AI features) is a separate sign-in. Cloning in the terminal avoids VS Code asking which GitHub account to use for git operations.
 
 &nbsp;
 
