@@ -63,7 +63,8 @@ Then sign into Copilot with your **enterprise** account:
    > [!CAUTION]
    > You must use an account with model access. An account without access looks like this:
    >
-   > ![Copilot account without model access](resources/agent-error.png)
+   > <img width="443" height="323" alt="agent-error" src="https://github.com/user-attachments/assets/8de16f0b-a7aa-4d6e-ae68-2722334bd122" />
+
 
 3. Once signed in, open Copilot Chat (`Cmd+Shift+I` on macOS / `Ctrl+Shift+I` on Windows) — you should see:
    - A **model selector** at the top of the chat panel
