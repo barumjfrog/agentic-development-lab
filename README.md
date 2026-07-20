@@ -58,8 +58,9 @@ code .
 Then sign into Copilot with your **enterprise** account:
 
 1. In VS Code, click the **Accounts** icon (bottom-left person icon)
-2. Select **Sign in with GitHub to use GitHub Copilot**
-Caution: Must have an account with model access 
+2. Select **Sign in with GitHub to use GitHub Copilot** 
+[!CAUTION]: Must have an account with model access. An account without access looks like this:
+(~/github/agent-error.png)
 3. Once signed in, open Copilot Chat (`Cmd+Shift+I` on macOS / `Ctrl+Shift+I` on Windows) — you should see:
    - A **model selector** at the top of the chat panel
    - A **mode selector** (Ask / Edit / Agent) at the bottom
