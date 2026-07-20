@@ -43,7 +43,7 @@ Specs ──▸ Skills ──▸ Governance ──▸ MCP Servers ──▸ MCP 
 - [Python 3.11+](https://www.python.org/downloads/)
 - [Node.js](https://nodejs.org/) (for running npm/npx packages in Exercises 04-05)
 - [JFrog CLI](https://docs.jfrog.com/jfrog-applications/jfrog-cli/) v2.102.0 or newer (`jf --version` to verify) with the Skills module (`jf skills --help` to verify)
-- Authenticate to the [`jfroggcpworkshopnyc.jfrog.io`](https://jfroggcpworkshopnyc.jfrog.io/) JFrog Platform instance via the JFrog CLI
+- Authenticate to the [`bahramsjfroggcpeast.jfrog.io`](https://bahramsjfroggcpeast.jfrog.io/) JFrog Platform instance via the JFrog CLI
 
 ### Clone and Open the Lab
 
